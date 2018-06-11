@@ -51,4 +51,13 @@ public class MyClassTest {
         Assert.assertEquals(expectedResult, s.isPalindrome(x));
 
     }
+
+    @Test
+    public void getClosingParen(){
+        Solution s = new Solution();
+        final String testCase = "All openers then closers";
+        final int expected = 10;
+        final int actual = s.getClosingParen("()()((()()))", 5);
+        Assert.assertEquals(testCase, expected, actual);
+    }
 }
