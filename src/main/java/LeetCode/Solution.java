@@ -1,9 +1,9 @@
 package LeetCode;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Solution {
 
@@ -199,24 +199,392 @@ public class Solution {
         return M[(num/1000)%10] + C[(num/100)%10] + X[(num/10)%10] + I[(num)%10];
     }
 
-    public List<List<Integer>> permute(int[] num) {
-        LinkedList<List<Integer>> res = new LinkedList<List<Integer>>();
-        res.add(new ArrayList<Integer>());
-        for (int n : num) {
-            int size = res.size();
-            for (; size > 0; size--) {
-                List<Integer> r = res.pollFirst();
-                System.out.println("Size is: " + size+" r is: " + r);
-                for (int i = 0; i <= r.size(); i++) {
-                    List<Integer> t = new ArrayList<Integer>(r);
-                    System.out.println("i is: "+i+" n is: "+n);
-                    t.add(i, n);
-                    System.out.println("t is: "+t);
-                    res.add(t);
-                    System.out.println("res is: " + res);
+    public List<List<Integer>> permute(int[] nums) {
+        return permute(Arrays.stream(nums).boxed().collect(Collectors.toList()));
+    }
+
+    private List<List<Integer>> permute(List<Integer> nums) {
+        List<List<Integer>> permutations = new ArrayList<>();
+        if (nums.size() == 0) {
+            return permutations;
+        }
+        if (nums.size() == 1) {
+            List<Integer> permutation = new ArrayList<>();
+            permutation.add(nums.get(0));
+            permutations.add(permutation);
+            return permutations;
+        }
+
+        List<List<Integer>> smallPermutations = permute(nums.subList(1, nums.size()));
+        int first = nums.get(0);
+        for(List<Integer> permutation : smallPermutations) {
+            for (int i = 0; i <= permutation.size(); i++) {
+                List<Integer> newPermutation = new ArrayList<>(permutation);
+                newPermutation.add(i, first);
+                permutations.add(newPermutation);
+            }
+        }
+        return permutations;
+    }
+
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        double median = 0;
+
+        int[]nums = IntStream.concat(IntStream.of(nums1), IntStream.of(nums2)).toArray();
+
+        if(nums.length == 0){
+            return median;
+        }
+
+        if(nums.length == 1){
+            return nums[0];
+        }
+
+        if(nums.length == 2){
+            return (double) (nums[0] + nums[1])/2;
+        }
+
+        Arrays.sort(nums);
+
+        if(nums.length%2 == 1){
+            median = nums[nums.length/2];
+        }
+        else{
+            median = (double) (nums[nums.length/2] + nums[(nums.length/2)-1])/2;
+        }
+
+        return median;
+    }
+
+    public boolean isValidSudoku(char[][] board) {
+        Set seen = new HashSet();
+        for (int i=0; i<9; ++i) {
+            for (int j=0; j<9; ++j) {
+                char number = board[i][j];
+                if (number != '.')
+                    if (!seen.add(number + " in row " + i) ||
+                            !seen.add(number + " in column " + j) ||
+                            !seen.add(number + " in block " + i/3 + "-" + j/3))
+                        return false;
+            }
+        }
+        return true;
+    }
+
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+
+        if(head == null){
+            return null;
+        }
+
+        ListNode dummy = new ListNode(0);
+
+        dummy.next = head;
+
+        ListNode l = head;
+        ListNode t = head;
+
+        for(int i = 0; i < n; i++){
+            l = l.next;
+        }
+
+        while(l.next != null){
+            l = l.next;
+            t = t.next;
+        }
+
+        t.next = t.next.next;
+
+        return dummy.next;
+    }
+
+    public String convert(String s, int numRows) {
+        String convertedS = "";
+
+        //char[] sArray = s.toCharArray();
+
+        String[] sArray = s.split("");
+
+        String[] builtStrings = new String[numRows];
+        Arrays.fill(builtStrings, "");
+
+        int count = 0;
+        boolean up = true;
+
+        for(int i = 0; i < sArray.length; i++){
+            builtStrings[count].concat(sArray[i]);
+            if(count < numRows && up == true){
+                count++;
+                if(count == numRows){
+                    up = false;
+                    count = numRows - 2;
+                }
+            }
+            else if(count > 0 && up == false){
+                count--;
+                if(count == -1){
+                    up = true;
+                    count = 1;
                 }
             }
         }
-        return res;
+
+        for(int i = 1; i < numRows; i++){
+            builtStrings[0].concat(builtStrings[i]);
+        }
+
+        convertedS = builtStrings[0];
+
+        return convertedS;
+    }
+
+    //Rotate an array of n elements to the right by k steps.
+    //For example, with n = 7 and k = 3, the array [1,2,3,4,5,6,7] is rotated to [5,6,7,1,2,3,4]. How many different ways do you know to solve this problem?
+
+    public int[] rotate(int[] n, int k){
+        int[] rotatedN = new int[n.length];
+
+        for(int i = 0; i < n.length; i++){
+            rotatedN[k] = n[i];
+            k++;
+            if(k == n.length){
+                k = 0;
+            }
+        }
+        return rotatedN;
+    }
+
+    //Evaluate the value of an arithmetic expression in Reverse Polish Notation. Valid operators are +, -, *, /. Each operand may be an integer or another expression. For example:
+
+    //["2", "1", "+", "3", "*"] -> ((2 + 1) * 3) -> 9
+    //["4", "13", "5", "/", "+"] -> (4 + (13 / 5)) -> 6
+
+    public int reversePolishNotation(String[] equation){
+        int answer = 0;
+
+        if(equation == null){
+            return 0;
+        }
+
+        Stack s = new Stack();
+
+        for(int i = 0; i < equation.length; i++){
+            if(Character.isDigit(equation[i].charAt(0))){
+                s.push(equation[i]);
+            }
+            if(equation[i].equalsIgnoreCase("+")){
+                int firstOperand = Integer.parseInt(s.pop().toString());
+                int secondOperand = Integer.parseInt(s.pop().toString());
+                s.push(firstOperand+secondOperand);
+            }
+            if(equation[i].equalsIgnoreCase("-")){
+                int firstOperand = Integer.parseInt(s.pop().toString());
+                int secondOperand = Integer.parseInt(s.pop().toString());
+                s.push(firstOperand-secondOperand);
+            }
+            if(equation[i].equalsIgnoreCase("*")){
+                int firstOperand = Integer.parseInt(s.pop().toString());
+                int secondOperand = Integer.parseInt(s.pop().toString());
+                s.push(firstOperand*secondOperand);
+            }
+            if(equation[i].equalsIgnoreCase("/")){
+                int firstOperand = Integer.parseInt(s.pop().toString());
+                int secondOperand = Integer.parseInt(s.pop().toString());
+                s.push(firstOperand/secondOperand);
+            }
+        }
+
+        return answer;
+    }
+
+    public int fibonacci(int n){
+        if(n == 0){
+            return 0;
+        }
+        if(n == 1){
+            return 1;
+        }
+        return fibonacci(n-1) + fibonacci(n-2);
+    }
+
+    public int tripleStep(int n){
+        if ( n == 0){
+            return 0;
+        }
+        if(n == 1){
+            return 1;
+        }
+        if(n == 2){
+            return 1;
+        }
+        if(n == 3){
+            return 1;
+        }
+        return 0;
+    }
+
+    public boolean canVisitAllRooms(List<List<Integer>> rooms) {
+        /* DFS Solution
+        boolean[] visited = new boolean[rooms.size()];
+        Stack<Integer> s = new Stack<>();
+
+        visited[0] = true;
+        s.push(0);
+
+        while(!s.isEmpty()){
+            int currentRoom = s.pop();
+
+            for(int room : rooms.get(currentRoom)){
+                if(!visited[room]){
+                    visited[room] = true;
+                    s.push(room);
+                }
+            }
+        }
+
+        for(boolean b : visited){
+            if(!b == true)
+                return false;
+        }
+
+        return true;*/
+
+        //BFS
+
+        boolean[] visited = new boolean[rooms.size()];
+
+        Queue<Integer> q = new LinkedList<>();
+
+        q.add(0);
+
+        while(!q.isEmpty()){
+            int currentRoom = q.poll();
+
+            visited[currentRoom] = true;
+
+            for(int room : rooms.get(currentRoom)){
+                if(!visited[room] == true){
+                    q.add(room);
+                }
+            }
+
+        }
+
+        for(boolean b : visited){
+            if(!b == true)
+                return false;
+        }
+
+        return true;
+    }
+
+    public static int getClosingParen(String sentence, int openingParenIndex) {
+
+        Stack<Integer> s = new Stack();
+
+        for(int i = openingParenIndex; i < sentence.length(); i++){
+            if(sentence.charAt(i) == '('){
+                s.push(i);
+            }
+            if(sentence.charAt(i) == ')'){
+                //int currentInt = 0;
+                //currentInt = s.pop();
+                s.pop();
+                if(s.isEmpty()){
+                    return i;
+                }
+            }
+        }
+
+        throw new IllegalArgumentException("No matching index");
+    }
+
+    public static List<Meeting> mergeRanges(List<Meeting> meetings) {
+
+        // make a copy so we don't destroy the input
+        List<Meeting> sortedMeetings = new ArrayList<>();
+        for (Meeting meeting: meetings) {
+            Meeting meetingCopy = new Meeting(meeting.getStartTime(), meeting.getEndTime());
+            sortedMeetings.add(meetingCopy);
+        }
+
+        // sort by start time
+        Collections.sort(sortedMeetings, new Comparator<Meeting>() {
+            @Override
+            public int compare(Meeting m1, Meeting m2) {
+                return m1.getStartTime() - m2.getStartTime();
+            }
+        });
+
+        // initialize mergedMeetings with the earliest meeting
+        List<Meeting> mergedMeetings = new ArrayList<>();
+        mergedMeetings.add(sortedMeetings.get(0));
+
+        for (Meeting currentMeeting : sortedMeetings) {
+
+            Meeting lastMergedMeeting = mergedMeetings.get(mergedMeetings.size() - 1);
+
+            // if the current meeting overlaps with the last merged meeting, use the
+            // later end time of the two
+            if (currentMeeting.getStartTime() <= lastMergedMeeting.getEndTime()) {
+                lastMergedMeeting.setEndTime(Math.max(lastMergedMeeting.getEndTime(), currentMeeting.getEndTime()));
+
+                // add the current meeting since it doesn't overlap
+            } else {
+                mergedMeetings.add(currentMeeting);
+            }
+        }
+
+        return mergedMeetings;
+    }
+
+    public static class Meeting {
+
+        private int startTime;
+        private int endTime;
+
+        public Meeting(int startTime, int endTime) {
+            // number of 30 min blocks past 9:00 am
+            this.startTime = startTime;
+            this.endTime   = endTime;
+        }
+
+        public int getStartTime() {
+            return startTime;
+        }
+
+        public void setStartTime(int startTime) {
+            this.startTime = startTime;
+        }
+
+        public int getEndTime() {
+            return endTime;
+        }
+
+        public void setEndTime(int endTime) {
+            this.endTime = endTime;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) {
+                return true;
+            }
+            if (!(o instanceof Meeting)) {
+                return false;
+            }
+            final Meeting meeting = (Meeting) o;
+            return startTime == meeting.startTime && endTime == meeting.endTime;
+        }
+
+        @Override
+        public int hashCode() {
+            return 17 + startTime + 31 * endTime;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("(%d, %d)", startTime, endTime);
+        }
     }
 }
